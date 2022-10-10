@@ -2,6 +2,59 @@
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-md-8">
+          <!-- Modal -->
+          <div v-if="showModal" :show="showModal" class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Thêm công việc mới</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close" @click="showModal = false">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form @submit.prevent>
+                    <div class="form-group">
+                      <label for="event_name">Event Name</label>
+                      <input type="text" id="event_name" class="form-control" v-model="newEvent.event_name">
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="start_date">Start Date</label>
+                          <input type="date" id="start_date" class="form-control" v-model="newEvent.start_date">
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label for="end_date">End Date</label>
+                          <input type="date" id="end_date" class="form-control" v-model="newEvent.end_date">
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <div class="col-md-6 mb-4" v-if="addingMode">
+                    <button class="btn btn-sm btn-primary" @click="addNewEvent">Save Event</button>
+                  </div>
+                  <template v-else>
+                    <div class="col-md-6 mb-4">
+                      <button class="btn btn-sm btn-success" @click="updateEvent" data-dismiss="modal">Update</button>
+                      <button class="btn btn-sm btn-danger" @click="deleteEvent">Delete</button>
+                      <button class="btn btn-sm btn-secondary" @click="addingMode = !addingMode">Cancel</button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        <div class="btn">
+            <button @click="handleSelect" class="btn btn-sm btn-success">Thêm công việc mới</button>
+        </div>       
+      </div>
+      <div class="col-md-8">
         <form @submit.prevent>
           <div class="form-group">
             <label for="event_name">Event Name</label>
@@ -11,12 +64,7 @@
             <div class="col-md-6">
               <div class="form-group">
                 <label for="start_date">Start Date</label>
-                <input
-                  type="date"
-                  id="start_date"
-                  class="form-control"
-                  v-model="newEvent.start_date"
-                >
+                <input type="date" id="start_date" class="form-control" v-model="newEvent.start_date">
               </div>
             </div>
             <div class="col-md-6">
@@ -39,14 +87,26 @@
         </form>
       </div>
       <div class="col-md-8">
-        <Fullcalendar @eventClick="showEvent" :plugins="calendarPlugins" :events="events"/>
+        <Fullcalendar @eventClick="showEvent" :plugins="calendarPlugins" :events="events" ref="fullCalendar" :header="{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+        }" :selectable="true" :weekends="true" :editable="true" :initialView="dayGridMonth" :buttonText="{
+           today: 'Today',
+           month: 'Month',
+           week: 'Week',
+           day: 'Day',
+        }"
+        @select = "handleSelect"
+        @clickDate="handleDateClick"
+        />
       </div>
     </div>
   </div>
 </template>
-
 <script>
 import Fullcalendar from "@fullcalendar/vue";
+import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
@@ -57,7 +117,12 @@ export default {
   },
   data() {
     return {
-      calendarPlugins: [dayGridPlugin, interactionPlugin],
+      calendarPlugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+      // pluginsOptions: {
+
+      //   selectable: true,
+
+      // },
       events: "",
       newEvent: {
         event_name: "",
@@ -65,7 +130,8 @@ export default {
         end_date: ""
       },
       addingMode: true,
-      indexToUpdate: ""
+      indexToUpdate: "",
+      showModal: false,
     };
   },
   created() {
@@ -133,7 +199,15 @@ export default {
       Object.keys(this.newEvent).forEach(key => {
         return (this.newEvent[key] = "");
       });
-    }
+    },
+    handleSelect() {
+      // console.log('Okee');
+      this.showModal = true;
+    },
+    handleDateClick(){
+      console.log('Okeee');
+      this.showModal = true;
+    },
   },
   watch: {
     indexToUpdate() {
@@ -146,6 +220,7 @@ export default {
 <style lang="css">
 @import "~@fullcalendar/core/main.css";
 @import "~@fullcalendar/daygrid/main.css";
+@import "~@fullcalendar/timegrid/main.css";
 
 .fc-title {
   color: #fff;
